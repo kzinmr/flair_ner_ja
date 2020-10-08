@@ -1,3 +1,4 @@
+from flair.datasets import ColumnCorpus
 from flair.trainers import ModelTrainer
 from ner import make_tagger
 from pathlib import Path
