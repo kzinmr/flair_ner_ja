@@ -19,7 +19,8 @@ RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
 COPY ner.py .
+COPY app.py .
 RUN mkdir -p resources/data
 RUN mkdir -p resources/models
 
-CMD ["python", "ner.py"]
+CMD ["python", "app.py"]
