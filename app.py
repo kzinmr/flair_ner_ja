@@ -99,13 +99,13 @@ def make_conll_corpus(dirname):
         conll = make_conll(cc, reader)
     train_file = 'train.conll'
     with open(data_folder / train_file, 'w') as fp:
-        sp.write("\n\n".join(conll))
+        fp.write("\n\n".join(conll))
 
     with jsonlines.open(data_folder / test_file, 'r') as reader:
         conll = make_conll(cc, reader)
     test_file = 'test.conll'
     with open(data_folder / test_file, 'w') as fp:
-        sp.write("\n\n".join(conll))
+        fp.write("\n\n".join(conll))
 
     columns = {0: 'text', 1: 'ner'}
     corpus = ColumnCorpus(data_folder, columns,
