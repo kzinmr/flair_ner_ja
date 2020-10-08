@@ -14,6 +14,7 @@ RUN apt-get update -y && apt-get install -y \
     g++ \
     mecab \
     libmecab-dev mecab-ipadic-utf8
+RUN ln -s /etc/mecabrc /usr/local/etc/mecabrc
 
 COPY requirements.txt .
 # hadolint ignore=DL3013
