@@ -57,11 +57,11 @@ def load_tagger_model(model_dir):
     return model
 
 if __name__ == '__main__':
-    dirname = 'data'
+    dirname = 'resources/data'
     corpus = make_conll_corpus(dirname)
     tagger = make_tagger(corpus)
     trainer = ModelTrainer(tagger, corpus)
-    model_dir = Path('models')
+    model_dir = Path('resources/models')
     trainer.train(model_dir,
                 learning_rate=0.1,
                 mini_batch_size=32,
