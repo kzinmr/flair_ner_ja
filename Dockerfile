@@ -11,7 +11,9 @@ RUN apt-get update -y && apt-get install -y \
     cmake \
     unzip \
     gcc \
-    g++
+    g++ \
+    mecab \
+    libmecab-dev mecab-ipadic-utf8
 
 COPY requirements.txt .
 # hadolint ignore=DL3013
