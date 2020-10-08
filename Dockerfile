@@ -19,11 +19,12 @@ RUN ln -s /etc/mecabrc /usr/local/etc/mecabrc
 COPY requirements.txt .
 # hadolint ignore=DL3013
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install -r requirements.txt \
+    pip install hydra-core --upgrade
 
-COPY ner.py .
+COPY config.yaml .
 COPY app.py .
-RUN mkdir -p resources/data
-RUN mkdir -p resources/models
+RUN mkdir -p outputs/data
+RUN mkdir -p outputs/models
 
 CMD ["python", "app.py"]
