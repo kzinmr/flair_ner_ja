@@ -26,8 +26,8 @@ class ConllConverter:
                 return superspan
         return None
 
-    @staticmethod
-    def get_token_labels(token_spans: Tuple[int, int], chunk_spans: Tuple[int, int], chunk_labels: List[str]) -> List[str]:
+    @classmethod
+    def get_token_labels(cls, token_spans: Tuple[int, int], chunk_spans: Tuple[int, int], chunk_labels: List[str]) -> List[str]:
         """ chunk単位のラベルから、token単位のラベルを構成
         """
 
@@ -37,7 +37,7 @@ class ConllConverter:
         target_token_spans = []
         tagtypes = []
         for token_span in token_spans:
-            chunk_span = get_superspan(token_span, chunk_spans)
+            chunk_span = cls.get_superspan(token_span, chunk_spans)
             if chunk_span is not None and chunk_span in chunkspan2tagtype:
                 target_token_spans.append(token_span)
                 tagtypes.append(chunkspan2tagtype[chunk_span])
