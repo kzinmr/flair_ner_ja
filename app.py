@@ -1,5 +1,5 @@
 from flair.datasets import ColumnCorpus
-from flair.embeddings import StackedEmbeddings, FlairEmbeddings, PooledFlairEmbeddings, WordEmbeddings
+from flair.embeddings import StackedEmbeddings, FlairEmbeddings, WordEmbeddings
 from flair.data import Sentence
 from flair.models import SequenceTagger
 from flair.trainers import ModelTrainer
@@ -151,11 +151,9 @@ def make_tagger(corpus, cfg):
     # using a character-level language model
     # Trained with 439M words of Japanese Web crawls
     embedding_types = [
-        # WordEmbeddings('ja-wiki'),  # FastText
-        PooledFlairEmbeddings('ja-forward'),
-        PooledFlairEmbeddings('ja-backward'),
-        # FlairEmbeddings('ja-forward'),
-        # FlairEmbeddings('ja-backward'),
+        WordEmbeddings('ja-wiki'),  # FastText
+        FlairEmbeddings('ja-forward'),
+        FlairEmbeddings('ja-backward'),
     ]
     embeddings = StackedEmbeddings(embeddings=embedding_types)
 
