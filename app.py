@@ -176,7 +176,7 @@ def main(cfg: DictConfig):
     print(f'to_absolute_path("outputs/data") : {hydra.utils.to_absolute_path("outputs/data")}')
 
     data_folder = Path(hydra.utils.get_original_cwd()) / 'outputs/data'
-    corpus = make_sample_conll_corpus(data_folder)
+    corpus = make_conll_corpus(data_folder)
     tagger = make_tagger(corpus, cfg)
     trainer = ModelTrainer(tagger, corpus)
     model_dir = Path(hydra.utils.get_original_cwd()) / 'outputs/models'
