@@ -1,2 +1,5 @@
 flair==0.6.1
 mecab-python3==1.0.1
+uvicorn
+gunicorn
+fastapi
