@@ -37,7 +37,8 @@ def tag_text(tagger: SequenceTagger, sentence: str):
     sentence: A string to tag.
     ------------------------
     Output:
-    A list of tuples containing labels & probabilities.
+    A list of dicts containing text, position spans and labels with confidences.
+    ["{\"text\": \"株式会社XYZ\", \"start_pos\": 0, \"end_pos\": 7, \"labels\": [{\"value\": \"COMPANY\", \"confidence\": 0.99}]}"]
     """
     sentence = Sentence(' '.join(wakati.parse(sentence).split()))  #, use_tokenizer=tokenizer)
     tagger.predict(sentence)
@@ -48,9 +49,9 @@ def tag_text(tagger: SequenceTagger, sentence: str):
 
 @app.post("/ner")
 async def tag_text_endpoint(case: Case):
-    """Takes the text request and returns a record with the labels & associated probabilities."""
+    """Takes the text request and returns a record with the span & labels with confidences."""
 
-    # Use the pretrained model to classify the incoming text in the request.
+    # Use the pretrained model to tag the incoming text in the request.
     tagged_text = tag_text(tagger, case.text)
 
     return tagged_text
