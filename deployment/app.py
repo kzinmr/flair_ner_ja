@@ -19,14 +19,12 @@ tagger = SequenceTagger.load("./model/best-model.pt")
 app = FastAPI()
 
 
-
 def span_to_dict(span):
     d = span.to_dict()
     d['labels'] = [l.to_dict() for l in d['labels']]
     return d
 
 
-# Define the prediction function.
 def tag_text(tagger: SequenceTagger, sentence: str):
 
     """
@@ -50,8 +48,4 @@ def tag_text(tagger: SequenceTagger, sentence: str):
 @app.post("/ner")
 async def tag_text_endpoint(case: Case):
     """Takes the text request and returns a record with the span & labels with confidences."""
-
-    # Use the pretrained model to tag the incoming text in the request.
-    tagged_text = tag_text(tagger, case.text)
-
-    return tagged_text
+    return tag_text(tagger, case.text)
