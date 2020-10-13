@@ -1,0 +1,2 @@
+["株式会社XYZ（以下、「甲」とする）", {"entities": [[0, 7, "PARTY"]]}]
+["甲：株式会社XYZ\n乙：ABC株式会社", {"entities": [[2, 9, "PARTY"], [12, 19, "PARTY"]]}]

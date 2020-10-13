@@ -129,4 +129,5 @@ dmypy.json
 .pyre/
 
 deployment/model/best-model.pt
-
+batch/model/best-model.pt
+batch/model/
