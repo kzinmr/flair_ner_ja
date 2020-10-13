@@ -130,4 +130,5 @@ dmypy.json
 
 deployment/model/best-model.pt
 batch/model/best-model.pt
-batch/model/
+batch/data/test.jsonl
+batch/data/predict.jsonl

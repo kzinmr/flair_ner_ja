@@ -1,4 +1,0 @@
-{"text": "株式会社XYZ（以下、「甲」とする）", "spans": [{"text": "株式会社 XYZ", "start_pos": 0, "end_pos": 8, "labels": [{"value": "PARTY", "confidence": 0.9904175698757172}]}], "entities": [[0, 7, "PARTY"]]}
-{"text": "XYZ株式会社（以下、「甲」とする）\n甲：株式会社XYZ\n乙：株式会社ABC", "spans": 
-[{"text": "株式会社 XYZ", "start_pos": 33, "end_pos": 41, "labels": [{"value": "PARTY", "confidence": 0.9844234883785248}]}, 
- {"text": "株式会社 ABC", "start_pos": 46, "end_pos": 54, "labels": [{"value": "PARTY", "confidence": 0.9407178163528442}]}], "entities": [[2, 9, "PARTY"], [12, 19, "PARTY"]]}
