@@ -1,0 +1,12 @@
+{"text": "株式会社XYZ（以下、「甲」とする）", 
+ "tokenized_text": "株式会社 XYZ （ 以下 、 「 甲 」 と する ）", 
+ "string_spans": {"pred": [{"text": "株式会社XYZ", "start_pos": 0, "end_pos": 7, "labels": [{"value": "PARTY", "confidence": 0.9904175698757172}]}], 
+                  "gold": [{"text": "株式会社XYZ", "start_pos": 0, "end_pos": 7, "labels": [{"value": "PARTY", "confidence": 1.0}]}]}, 
+ "token_spans": {"pred": [{"text": "株式会社 XYZ", "start_pos": 0, "end_pos": 8, "labels": [{"value": "PARTY", "confidence": 0.9904175698757172}]}], 
+                 "gold": [{"text": "株式会社 XYZ", "start_pos": 0, "end_pos": 8, "labels": [{"value": "PARTY", "confidence": 1.0}]}]}}
+{"text": "甲：株式会社XYZ\n乙：ABC株式会社",
+ "tokenized_text": "甲 ： 株式会社 XYZ 乙 ： ABC 株式会社", 
+ "string_spans": {"pred": [{"text": "株式会社XYZ", "start_pos": 2, "end_pos": 9, "labels": [{"value": "PARTY", "confidence": 0.9745892882347107}]}],
+                  "gold": [{"text": "株式会社XYZ", "start_pos": 2, "end_pos": 9, "labels": [{"value": "PARTY", "confidence": 1.0}]}, {"text": "ABC株式会社", "start_pos": 12, "end_pos": 19, "labels": [{"value": "PARTY", "confidence": 1.0}]}]},
+ "token_spans": {"pred": [{"text": "株式会社 XYZ", "start_pos": 4, "end_pos": 12, "labels": [{"value": "PARTY", "confidence": 0.9745892882347107}]}], 
+                 "gold": [{"text": "株式会社 XYZ", "start_pos": 4, "end_pos": 12, "labels": [{"value": "PARTY", "confidence": 1.0}]}, {"text": "ABC 株式会社", "start_pos": 17, "end_pos": 25, "labels": [{"value": "PARTY", "confidence": 1.0}]}]}}
