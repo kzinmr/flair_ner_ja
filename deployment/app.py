@@ -49,7 +49,7 @@ def tag_text(tagger: SequenceTagger, sentence: str):
     labels_pred = [d['labels'] for d in tokenized_spans_response]
     tokenized_spans = [(d['start_pos'], d['end_pos']) for d in tokenized_spans_response]
     string_spans = textspan.align_spans(tokenized_spans, tokenized_text, text)
-    string_spans = [components[0] for components in string_spans]
+    string_spans = [components[0] for components in string_spans if len(components) > 0]
     string_spans_response = [{'text': text[s:e], 'start_pos': s, 'end_pos': e, 'labels': ld} for (s,e), ld in zip(string_spans, labels_pred)]
     return {
         'text': text,

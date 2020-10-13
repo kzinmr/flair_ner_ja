@@ -47,12 +47,12 @@ def tag_and_align_spans(tagger, text, spans_gold, labels_gold):
     labels_pred = [d['labels'] for d in response['spans']]
     tokenized_spans_pred = [(d['start_pos'], d['end_pos']) for d in response['spans']]
     spans_pred = textspan.align_spans(tokenized_spans_pred, tokenized_text, text)
-    spans_pred = [components[0] for components in spans_pred]
+    spans_pred = [components[0] for components in spans_pred if len(components) > 0]
 
     # original_spans, original_text, tokenized_text -> tokenized_spans
     labels_gold = [[{'value': label, 'confidence': 1.0}] for label in labels_gold]
     tokenized_spans_gold = textspan.align_spans(spans_gold, text, tokenized_text)
-    tokenized_spans_gold = [(components[0][0], components[-1][1]) for components in tokenized_spans_gold]
+    tokenized_spans_gold = [(components[0][0], components[-1][1]) for components in tokenized_spans_gold if len(components) > 0]
 
     return {
         'text': text,
