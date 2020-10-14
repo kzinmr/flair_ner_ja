@@ -79,7 +79,7 @@ if __name__=='__main__':
         outputs = []
         with jsonlines.open('/app/data/test.jsonl') as reader:
             for text, entd in reader.iter():
-                triples = sorted(set(map(tuple, entd['entities']))), key=lambda x: x[0])
+                triples = sorted(set(map(tuple, entd['entities'])), key=lambda x: x[0])
                 labels_gold = [label for _, _, label in triples]
                 spans_gold = [(s, e) for s, e, _ in triples if s > 0 and e > 0]
                 result = tag_and_align_spans(tagger, text, spans_gold, labels_gold)
