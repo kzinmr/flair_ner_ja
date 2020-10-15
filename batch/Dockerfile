@@ -21,7 +21,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
     pip install --no-cache-dir jsonlines && \
-    pip install git+https://github.com/kzinmr/flair.git@feature/torch_quantization
+    pip install git+https://github.com/kzinmr/flair.git
 
 
 RUN mkdir /app/model
