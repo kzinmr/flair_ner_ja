@@ -20,7 +20,9 @@ RUN ln -s /etc/mecabrc /usr/local/etc/mecabrc
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt && \
-    pip install --no-cache-dir jsonlines
+    pip install --no-cache-dir jsonlines && \
+    pip install git+https://github.com/kzinmr/flair.git@feature/torch_quantization
+
 
 RUN mkdir /app/model
 COPY model/best-model.pt /app/model/best-model.pt
