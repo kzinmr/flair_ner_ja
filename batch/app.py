@@ -2,7 +2,7 @@ import json
 import jsonlines
 from flair.models import SequenceTagger
 from flair.data import Sentence  #, build_japanese_tokenizer
-
+import torch
 import MeCab
 import textspan
 
