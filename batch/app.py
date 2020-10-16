@@ -1,3 +1,4 @@
+import pickle
 import json
 import jsonlines
 from flair.models import SequenceTagger
@@ -71,25 +72,34 @@ def tag_and_align_spans(tagger, text, spans_gold, labels_gold):
 def jp_dumps(s):
     return json.dumps(s, ensure_ascii=False)
 
-if __name__=='__main__':
-    quantize = True
-    wakati = MeCab.Tagger("-Owakati")
-    modelpath = "./model/best-model.pt"
-    try:
+def load_model(modelpath, quantize=False):
+    if modelpath.endswith('pt'):
         tagger = SequenceTagger.load(modelpath)
         if quantize:
-            qtagger = torch.quantization.quantize_dynamic(tagger, {torch.nn.LSTM, torch.nn.Linear}, dtype=torch.qint8)
+            tagger = torch.quantization.quantize_dynamic(tagger, {torch.nn.LSTM, torch.nn.Linear}, dtype=torch.qint8)
+    elif modelpath.endswith('pkl'):
+        with open(modelpath, 'rb') as fp:
+            tagger = pickle.load(fp)
+    else:
+        tagger = None
+    return tagger
+
+if __name__=='__main__':
+    modelpath = "./model/best-model.pkl"
+    quantize = False
+    tagger = load_model(modelpath, quantize)
+    if tagger is not None:
+        wakati = MeCab.Tagger("-Owakati")
         outputs = []
         with jsonlines.open('/app/data/test.jsonl') as reader:
             for text, entd in reader.iter():
                 triples = sorted(set(map(tuple, entd['entities'])), key=lambda x: x[0])
                 labels_gold = [label for _, _, label in triples]
                 spans_gold = [(s, e) for s, e, _ in triples if s > 0 and e > 0]
-                result = tag_and_align_spans(tagger if not quantize else qtagger, text, spans_gold, labels_gold)
+                result = tag_and_align_spans(tagger, text, spans_gold, labels_gold)
                 outputs.append(result)
 
         with jsonlines.open('/app/data/predict.jsonl', mode='w', dumps=jp_dumps) as writer:
             writer.write_all(outputs)
-
-    except FileNotFoundError:
-        print(f'No file of {modelpath}')
+    else:
+        print(f'Failed to load model: {modelpath}')
