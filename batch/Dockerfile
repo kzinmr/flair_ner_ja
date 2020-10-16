@@ -25,7 +25,7 @@ RUN pip install --upgrade pip && \
 
 
 RUN mkdir /app/model
-COPY model/best-model.pt /app/model/best-model.pt
+COPY model/best-model.pkl /app/model/best-model.pkl
 COPY app.py /app/app.py
 
 RUN mkdir -p /app/data
