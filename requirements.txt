@@ -4,3 +4,4 @@ pytokenizations==0.6.0
 jsonlines==1.2.0
 mecab-python3==1.0.1
 omegaconf==2.0.2
+iobes==1.4.3

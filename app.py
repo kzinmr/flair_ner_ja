@@ -1,22 +1,139 @@
 from flair.datasets import ColumnCorpus
 from flair.embeddings import StackedEmbeddings, FlairEmbeddings
-from flair.data import Sentence
 from flair.models import SequenceTagger
 from flair.trainers import ModelTrainer
-from typing import List, Tuple, Dict, Iterable, Optional
+import torch
+from typing import List, Tuple, Optional
 import MeCab
-import tokenizations
 import os
 from pathlib import Path
 import jsonlines
 import requests
 import hydra
 from omegaconf import DictConfig
+import tokenizations
+import iobes
+import pickle
+
+from dataclasses import dataclass
+from typing import List, Tuple, Dict, Iterable
+
+
+@dataclass(frozen=True)
+class Token:
+    text: str
+    label: str
+
+
+@dataclass(frozen=True)
+class Chunk:
+    tokens: List[Token]
+    label: str
+    span: List[Tuple[int, int]]
+
+    def __iter__(self):
+        for token in self.tokens:
+            yield token
+
+
+@dataclass(frozen=True)
+class Sentence(Iterable[Token]):
+    tokens: List[Token]
+    chunks: List[Chunk]
+
+    def __init__(self, tokens):
+        object.__setattr__(self, "tokens", tokens)
+        object.__setattr__(self, "text", "".join([token.text for token in self.tokens]))
+        object.__setattr__(self, "chunks", self.__build_chunks(self.tokens))
+        self.assert_spans()
+
+    def __iter__(self):
+        for token in self.tokens:
+            yield token
+
+    def __build_chunks(self, tokens: List[Token]) -> List[Chunk]:
+        chunks = self.__chunk_tokens(tokens)
+        chunk_spans = self.__chunk_span(tokens)
+        return [
+            Chunk(
+                tokens=chunk_tokens,
+                label=chunk_tokens[0].label.split("-")[1],
+                span=chunk_span,
+            )
+            for chunk_tokens, chunk_span in zip(chunks, chunk_spans)
+        ]
+
+    @staticmethod
+    def __chunk_tokens(tokens: List[Token]) -> List[List[Token]]:
+        chunks = []
+        chunk = []
+        for token in tokens:
+            if token.label.startswith("B"):
+                if chunk:
+                    chunks.append(chunk)
+                    chunk = []
+                chunk = [token]
+            elif token.label.startswith("I"):
+                chunk.append(token)
+            elif chunk:
+                chunks.append(chunk)
+                chunk = []
+        return chunks
+
+    @staticmethod
+    def __chunk_span(tokens: List[Token]) -> List[Tuple[int, int]]:
+        pos = 0
+        spans = []
+        chunk_spans = []
+        for token in tokens:
+
+            token_len = len(token.text)
+            span = (pos, pos + token_len)
+            pos += token_len
+
+            if token.label.startswith("B"):
+                # I->B
+                if len(spans) > 0:
+                    chunk_spans.append((spans[0][0], spans[-1][1]))
+                    spans = []
+                spans.append(span)
+            elif token.label.startswith("I"):
+                spans.append(span)
+            elif len(spans) > 0:
+                # B|I -> O
+                chunk_spans.append((spans[0][0], spans[-1][1]))
+                spans = []
+
+        return chunk_spans
+
+    def assert_spans(self):
+        for chunk in self.chunks:
+            assert self.text[chunk.span[0] : chunk.span[1]] == "".join(
+                [t.text for t in chunk]
+            )
+
+
+def sentences_to_necolumns(sentences_str):
+    sentences_columns = []
+    for s in sentences_str:
+        rows = []
+        for t in s.splitlines():
+            if len(t.split("\t")) > 1:
+                token = t.split("\t")[1]
+                details = dict(
+                    [
+                        l.split("=")
+                        for l in t.split("\t")[-1].split("|")
+                        if len(l.split("=")) == 2
+                    ]
+                )
+                rows.append("\t".join([token, details.get("NE", "O")]))
+        sentences_columns.append(rows)
+    return sentences_columns
 
 
 class ConllConverter:
-    """ Convert text and spans to CoNLL2003-like column data
-    """
+    """Convert text and spans to CoNLL2003-like column data"""
 
     def __init__(self):
         self.wakati = MeCab.Tagger("-Owakati")
@@ -28,8 +145,7 @@ class ConllConverter:
     def get_superspan(
         query_span: Tuple[int, int], superspans: List[Tuple[int, int]]
     ) -> Optional[Tuple[int, int]]:
-        """ return superspan for given query span from set of superspans if any
-        """
+        """return superspan for given query span from set of superspans if any"""
         for superspan in superspans:
             if query_span[0] >= superspan[0] and query_span[1] <= superspan[1]:
                 return superspan
@@ -42,8 +158,7 @@ class ConllConverter:
         chunk_spans: Tuple[int, int],
         chunk_labels: List[str],
     ) -> List[str]:
-        """ chunk単位のラベルから、token単位のラベルを構成
-        """
+        """chunk単位のラベルから、token単位のラベルを構成"""
 
         chunkspan2tagtype = dict(zip(chunk_spans, chunk_labels))
 
@@ -100,6 +215,80 @@ class ConllConverter:
         return token_label_columns
 
 
+class TokenizationAligner:
+    def __init__(self):
+        self.wakati = MeCab.Tagger("-Owakati")
+
+    def tokenize(self, text: str) -> List[str]:
+        return self.wakati.parse(text).split()
+
+    @staticmethod
+    def align_token_spans(token_chunk_spans, tokens, new_tokens):
+        """get spans for new tokenization by token alignment"""
+        org2new, _ = tokenizations.get_alignments(tokens, new_tokens)
+        new_spans = []
+        for token_s, token_e in token_chunk_spans:
+            new_s = org2new[token_s][0]
+            new_e = org2new[token_e - 1][-1] + 1
+            new_spans.append((new_s, new_e))
+        return new_spans
+
+    @classmethod
+    def convert_new_tokenization(cls, tokens, text, labels, tokenize, mode="bilou"):
+
+        # ラベルからアノテーションのtoken位置スパンを再構成
+        if mode == "bio":
+            chunks = iobes.parse_spans_bio(labels)
+        elif mode == "bilou":
+            chunks = iobes.parse_spans_bilou(labels)
+        elif mode == "bmeow":
+            chunks = iobes.parse_spans_bmeow(labels)
+        elif mode == "iobes":
+            chunks = iobes.parse_spans_iobes(labels)
+        else:
+            chunks = None
+            print("ERROR!!")
+            return labels
+        chunk_types = [chunk.type for chunk in chunks]
+        token_chunk_spans = [(chunk.start, chunk.end) for chunk in chunks]
+
+        # 新しい分かち書き単位における、アノテーションのtoken位置スパンを同定
+        new_tokens = tokenize(text)
+        new_token_chunk_spans = cls.align_token_spans(
+            token_chunk_spans, tokens, new_tokens
+        )
+
+        # 新たなスパンからBIOラベルを再構成
+        tokenspan2tagtype = dict(zip(new_token_chunk_spans, chunk_types))
+        all_new_token_spans = [(i, i + 1) for i, _ in enumerate(new_tokens)]
+        label = "O"
+        new_labels = []
+        for token_span in all_new_token_spans:
+            if token_span in tokenspan2tagtype:
+                tagtype = tokenspan2tagtype[token_span]
+                if label == "O":
+                    label = f"B-{tagtype}"
+                else:
+                    label = f"I-{tagtype}"
+            else:
+                label = "O"
+            new_labels.append(label)
+        # TODO: 必要ならiobesでラベル変換
+        return new_tokens, new_labels
+
+    def get_new_tokenization(self, sentences):
+        columns = []
+        for sentence in sentences:
+            text = sentence.text
+            tokens = [token.text for token in sentence]
+            labels = [token.label for token in sentence]
+            new_tokens, new_labels = self.convert_new_tokenization(
+                tokens, text, labels, self.tokenize
+            )
+            columns.append(list(zip(new_tokens, new_labels)))
+        return columns
+
+
 def download_data(url, filepath):
     response = requests.get(url)
     if response.ok:
@@ -109,8 +298,7 @@ def download_data(url, filepath):
 
 
 def make_sample_conll_corpus(data_folder):
-    """ conllフォーマットデータのダウンロード
-    """
+    """conllフォーマットデータのダウンロード"""
     url = "https://raw.githubusercontent.com/Hironsan/IOB2Corpus/master/ja.wikipedia.conll"
     train_file = "ja.wikipedia.conll"
     filepath = data_folder / train_file
@@ -122,8 +310,7 @@ def make_sample_conll_corpus(data_folder):
 
 
 def make_gsd_conll_corpus(data_folder):
-    """ conllフォーマットデータのダウンロード
-    """
+    """conllフォーマットデータのダウンロード"""
     train_url = "https://github.com/megagonlabs/UD_Japanese-GSD/releases/download/v2.6-NE/ja_gsd-ud-train.ne.conllu"
     train_file = "ja_gsd-ud-train.ne.conllu"
     train_path = data_folder / train_file
@@ -138,6 +325,33 @@ def make_gsd_conll_corpus(data_folder):
         and download_data(dev_url, dev_path)
         and download_data(test_url, test_path)
     ):
+        ta = TokenizationAligner()
+        for mode in ["train", "dev", "test"]:
+
+            with open(data_folder / f"ja_gsd-ud-{mode}.ne.conllu") as fp:
+                sentences_necolumns = sentences_to_necolumns(fp.read().split("\n\n"))
+                sentences = [
+                    Sentence(
+                        [
+                            Token(*row.split("\t"))
+                            for row in rows
+                            if len(row.split("\t")) == 2
+                        ]
+                    )
+                    for rows in sentences_necolumns
+                ]
+            token_labels = ta.get_new_tokenization(sentences)
+
+            with open(data_folder / f"ja.gsd-ud.{mode}.conll", "w") as fp:
+                for data in token_labels:
+                    for token, label in data:
+                        fp.write(f"{token}\t{label}")
+                        fp.write("\n")
+                    fp.write("\n")
+
+        train_file = "ja.gsd-ud.train.conll"
+        dev_file = "ja.gsd-ud.dev.conll"
+        test_file = "ja.gsd-ud.test.conll"
         columns = {0: "text", 1: "ner"}
         corpus = ColumnCorpus(
             data_folder,
@@ -162,8 +376,7 @@ def make_conll(cc, reader):
 
 
 def make_conll_corpus(data_folder):
-    """ camphr形式からtokenize & conllフォーマットに変換し、Corpus化
-    """
+    """camphr形式からtokenize & conllフォーマットに変換し、Corpus化"""
     cc = ConllConverter()
     train_file = "train.jsonl"
     test_file = "test.jsonl"
@@ -239,6 +452,13 @@ def main(cfg: DictConfig):
         train_with_dev=cfg.training.train_with_dev,
         batch_growth_annealing=cfg.training.batch_growth_annealing,
     )
+
+    tagger = SequenceTagger.load(model_dir / "best-model.pt")
+    qtagger = torch.quantization.quantize_dynamic(
+        tagger, {torch.nn.LSTM, torch.nn.Linear}, dtype=torch.qint8
+    )
+    with open(model_dir / "quantized-best-model.pkl", "wb") as fp:
+        pickle.dump(qtagger, fp)
 
 
 if __name__ == "__main__":
