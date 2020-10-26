@@ -117,7 +117,7 @@ def tag_and_align_spans(
         tokenized_texts = []
         # 元スパンをテキスト分割後のスパン位置に分割
         # TODO: いくつかは境界に位置して落ちてしまうのでそれらを残す
-        text_offsets = list(accumulate([len(text_i) for text_i in texts]))
+        text_offsets = [0] + list(accumulate([len(text_i) for text_i in texts]))[:-1]
         spans_labels_golds_split = [
             [
                 (span[0] - text_offset, span[1] - text_offset, label)
