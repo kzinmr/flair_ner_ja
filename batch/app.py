@@ -120,7 +120,7 @@ def tag_and_align_spans(
         text_offsets = list(accumulate([len(text_i) for text_i in texts]))
         spans_labels_golds_split = [
             [
-                (span[0] - textlen * i, span[1] - textlen * i, label)
+                (span[0] - text_offset, span[1] - text_offset, label)
                 for span, label in zip(spans_gold, labels_gold)
                 if span[0] - text_offset >= 0 and span[1] - text_offset < rolling_step
             ]
@@ -172,15 +172,21 @@ def tag_and_align_spans(
             labels_gold.extend(labels_gold_i)
 
         # NOTE: 各splitにおいて、 delimiter 1文字ぶんだけ余分に加算されることを加味したenumerate
-        tokenized_offsets = accumulate(
-            [len(tokenized_i) + i for i, tokenized_i in enumerate(tokenized_texts)]
-        )
+        tokenized_offsets = [0] + list(
+            accumulate(
+                [len(tokenized_i) + i for i, tokenized_i in enumerate(tokenized_texts)]
+            )
+        )[:-1]
         tokenized_spans_pred = [
-            [(s + tokenized_offset, e + tokenized_offset) for s, e in spans]
+            (s + tokenized_offset, e + tokenized_offset)
             for spans, tokenized_offset in zip(tokenized_spans_pred, tokenized_offsets)
+            for s, e in spans
         ]
-
         tokenized_text = " ".join(tokenized_texts)
+        print(tokenized_offsets)
+        print(tokenized_text)
+        print(tokenized_spans_pred)
+        print(labels_pred)
         return {
             "text": text,
             "tokenized_text": tokenized_text,
