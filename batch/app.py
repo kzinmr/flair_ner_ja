@@ -109,7 +109,8 @@ def tag_and_align_spans(
     if rolling_step <= 0 or len(text) <= rolling_step:
         return align_spans_from_single_response(tagger, text, spans_gold, labels_gold)
     else:
-        texts = [text[i : i + rolling_step] for i in range(0, len(text), rolling_step)]
+        window_size = rolling_step
+        texts = [text[i : i + window_size] for i in range(0, len(text), rolling_step)]
         responses = tag_texts(tagger, texts, batch_size)
         # 分割テキスト上スパンから元テキスト上のスパンを復元
         spans_pred = []
@@ -177,16 +178,13 @@ def tag_and_align_spans(
                 [len(tokenized_i) + i for i, tokenized_i in enumerate(tokenized_texts)]
             )
         )[:-1]
+        # split -> org
         tokenized_spans_pred = [
             (s + tokenized_offset, e + tokenized_offset)
             for spans, tokenized_offset in zip(tokenized_spans_pred, tokenized_offsets)
             for s, e in spans
         ]
         tokenized_text = " ".join(tokenized_texts)
-        print(tokenized_offsets)
-        print(tokenized_text)
-        print(tokenized_spans_pred)
-        print(labels_pred)
         return {
             "text": text,
             "tokenized_text": tokenized_text,
@@ -244,7 +242,7 @@ if __name__ == "__main__":
     modelpath = "./model/best-model.pkl"
     # quantize = False
     batch_size = 32
-    rolling_step = 150
+    rolling_step = 300
     tagger = load_model(modelpath)
     if tagger is not None:
         outputs = []

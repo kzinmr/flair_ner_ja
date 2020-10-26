@@ -3,7 +3,7 @@ from flair.embeddings import StackedEmbeddings, FlairEmbeddings
 from flair.models import SequenceTagger
 from flair.trainers import ModelTrainer
 import torch
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Iterable
 import MeCab
 import os
 from pathlib import Path
@@ -16,7 +16,6 @@ import iobes
 import pickle
 
 from dataclasses import dataclass
-from typing import List, Tuple, Dict, Iterable
 
 
 @dataclass(frozen=True)
