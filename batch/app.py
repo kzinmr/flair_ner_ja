@@ -2,7 +2,7 @@ import pickle
 import json
 import jsonlines
 from flair.models import SequenceTagger
-from flair.data import Sentence  # , build_japanese_tokenizer
+from flair.data import Sentence, Span  # , build_japanese_tokenizer
 import MeCab
 import textspan
 from itertools import accumulate
@@ -13,7 +13,7 @@ from typing import List, Tuple, Dict, Optional
 wakati = MeCab.Tagger("-Owakati")
 
 
-def span_to_dict(span: List[Tuple[int, int]]) -> Dict:
+def span_to_dict(span: List[Span]) -> Dict:
     d = span.to_dict()
     d["labels"] = [l.to_dict() for l in d["labels"]]
     return d
@@ -60,7 +60,7 @@ def align_spans_from_single_response(
     spans_pred = [components[0] for components in spans_pred if len(components) > 0]
 
     # original_spans, original_text, tokenized_text -> tokenized_spans
-    labels_gold = [[{"value": label, "confidence": 1.0}] for label in labels_gold]
+    labels_gold_new = [[{"value": label, "confidence": 1.0}] for label in labels_gold]
     tokenized_spans_gold = textspan.align_spans(spans_gold, text, tokenized_text)
     tokenized_spans_gold = [
         (components[0][0], components[-1][1])
@@ -78,7 +78,7 @@ def align_spans_from_single_response(
             ],
             "gold": [
                 {"text": text[s:e], "start_pos": s, "end_pos": e, "labels": ld}
-                for (s, e), ld in zip(spans_gold, labels_gold)
+                for (s, e), ld in zip(spans_gold, labels_gold_new)
             ],
         },
         "token_spans": {
@@ -129,7 +129,7 @@ def tag_and_align_spans(
         ]
         tokenized_spans_pred = []
         tokenized_spans_gold = []
-        labels_gold = []
+        labels_gold_new = []
         for response, text_offset, spans_labels_gold_i in zip(
             responses, text_offsets, spans_labels_golds_split
         ):
@@ -170,7 +170,7 @@ def tag_and_align_spans(
                 if len(components) > 0
             ]
             tokenized_spans_gold.extend(tokenized_spans_gold_i)
-            labels_gold.extend(labels_gold_i)
+            labels_gold_new.extend(labels_gold_i)
 
         # NOTE: 各splitにおいて、 delimiter 1文字ぶんだけ余分に加算されることを加味したenumerate
         tokenized_offsets = [0] + list(
@@ -195,7 +195,7 @@ def tag_and_align_spans(
                 ],
                 "gold": [
                     {"text": text[s:e], "start_pos": s, "end_pos": e, "labels": ld}
-                    for (s, e), ld in zip(spans_gold, labels_gold)
+                    for (s, e), ld in zip(spans_gold, labels_gold_new)
                 ],
             },
             "token_spans": {
@@ -221,7 +221,7 @@ def tag_and_align_spans(
         }
 
 
-def jp_dumps(s: str) -> Dict:
+def jp_dumps(s: str) -> str:
     return json.dumps(s, ensure_ascii=False)
 
 
