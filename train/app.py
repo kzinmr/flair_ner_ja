@@ -1,0 +1,159 @@
+from flair.datasets import ColumnCorpus
+from flair.embeddings import StackedEmbeddings, FlairEmbeddings
+from flair.models import SequenceTagger
+from flair.trainers import ModelTrainer
+from typing import Optional
+
+import os
+from pathlib import Path
+import jsonlines
+import requests
+import hydra
+from omegaconf import DictConfig
+
+
+def download_data(url, filepath):
+    response = requests.get(url)
+    if response.ok:
+        with open(filepath, "w") as fp:
+            fp.write(response.content.decode("utf8"))
+        return filepath
+
+
+def make_sample_conll_corpus(data_folder):
+    """conllフォーマットデータのダウンロード"""
+    url = "https://raw.githubusercontent.com/Hironsan/IOB2Corpus/master/ja.wikipedia.conll"
+    train_file = "ja.wikipedia.conll"
+    filepath = data_folder / train_file
+    if download_data(url, filepath):
+        columns = {0: "text", 1: "ner"}
+        corpus = ColumnCorpus(data_folder, columns, train_file=train_file)
+
+        return corpus
+
+
+def make_bio_conll_corpus(
+    data_folder: Path,
+    train_file="train.bio.retokenize",
+    dev_file="dev.bio.retokenize",
+    test_file="test.bio.retokenize",
+) -> Optional[ColumnCorpus]:
+    """(flairで使うtokenizerでretokenize済みの)conll2003形式データセットのロード"""
+    train_path = data_folder / train_file
+    dev_path = data_folder / dev_file
+    test_path = data_folder / test_file
+    if train_path.exists() and dev_path.exists() and test_path.exists():
+        columns = {0: "text", 1: "ner"}
+        corpus = ColumnCorpus(
+            data_folder,
+            columns,
+            train_file=train_file,
+            dev_file=dev_file,
+            test_file=test_file,
+        )
+        return corpus
+
+
+def make_conll_corpus(data_folder):
+    """camphr形式からtokenize & conllフォーマットに変換し、Corpus化"""
+
+    def __make_conll(cc, reader):
+        conll = []
+        for text, entd in reader.iter():
+            labels = [label for _, _, label in entd["entities"]]
+            spans = [(s, e) for s, e, _ in entd["entities"]]
+            tokens_labels = cc.tokenize_and_align_spans(text, spans, labels)
+            conll.append(
+                "\n".join([f"{token}\t{label}" for (token, label) in tokens_labels])
+            )
+        return conll
+
+    cc = ConllConverter()
+    train_file = "train.jsonl"
+    test_file = "test.jsonl"
+    with jsonlines.open(data_folder / train_file, "r") as reader:
+        conll = __make_conll(cc, reader)
+    train_file = "train.conll"
+    with open(data_folder / train_file, "w") as fp:
+        fp.write("\n\n".join(conll))
+
+    with jsonlines.open(data_folder / test_file, "r") as reader:
+        conll = __make_conll(cc, reader)
+    test_file = "test.conll"
+    with open(data_folder / test_file, "w") as fp:
+        fp.write("\n\n".join(conll))
+
+    columns = {0: "text", 1: "ner"}
+    corpus = ColumnCorpus(
+        data_folder, columns, train_file=train_file, test_file=test_file
+    )
+
+    return corpus
+
+
+def make_tagger(corpus, cfg):
+    tag_type = "ner"
+    tag_dictionary = corpus.make_tag_dictionary(tag_type=tag_type)
+    print(tag_dictionary.idx2item)
+
+    # Contextual string embeddings of words, as proposed in Akbik et al., 2018.
+    # using a character-level language model
+    # Trained with 439M words of Japanese Web crawls
+    embedding_types = [
+        FlairEmbeddings("ja-forward"),
+        FlairEmbeddings("ja-backward"),
+    ]
+    embeddings = StackedEmbeddings(embeddings=embedding_types)
+
+    tagger = SequenceTagger(
+        hidden_size=cfg.model.hidden_size,
+        dropout=cfg.model.dropout,
+        word_dropout=cfg.model.word_dropout,
+        locked_dropout=cfg.model.locked_dropout,
+        embeddings=embeddings,
+        tag_dictionary=tag_dictionary,
+        tag_type=tag_type,
+        use_crf=True,
+    )
+    return tagger
+
+
+@hydra.main(config_name="config")
+def main(cfg: DictConfig):
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Orig working directory : {hydra.utils.get_original_cwd()}")
+    print(
+        f'to_absolute_path("outputs/data") : {hydra.utils.to_absolute_path("outputs/data")}'
+    )
+
+    data_folder = Path(hydra.utils.get_original_cwd()) / "outputs/data"
+    corpus = make_bio_conll_corpus(
+        data_folder, "dev.bio.retokenize", "dev.bio.retokenize", "dev.bio.retokenize"
+    )
+
+    tagger = make_tagger(corpus, cfg)
+    trainer = ModelTrainer(tagger, corpus)
+    model_dir = Path(hydra.utils.get_original_cwd()) / "outputs/models"
+    trainer.train(
+        model_dir,
+        learning_rate=cfg.training.learning_rate,
+        mini_batch_size=cfg.training.mini_batch_size,
+        max_epochs=cfg.training.max_epochs,
+        patience=cfg.training.patience,
+        initial_extra_patience=cfg.training.initial_extra_patience,
+        anneal_factor=cfg.training.anneal_factor,
+        shuffle=cfg.training.shuffle,
+        train_with_dev=cfg.training.train_with_dev,
+        batch_growth_annealing=cfg.training.batch_growth_annealing,
+    )
+
+    # tagger = SequenceTagger.load(model_dir / "best-model.pt")
+    # qtagger = torch.quantization.quantize_dynamic(
+    #     tagger, {torch.nn.LSTM, torch.nn.Linear}, dtype=torch.qint8
+    # )
+    # with open(model_dir / "quantized-best-model.pkl", "wb") as fp:
+    #     pickle.dump(qtagger, fp)
+
+
+if __name__ == "__main__":
+    main()

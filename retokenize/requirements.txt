@@ -1,0 +1,6 @@
+mecab-python3
+ipadic
+pandas
+regex
+jsonlines
+pytokenizations

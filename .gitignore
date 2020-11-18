@@ -128,7 +128,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+train/outputs/
 deployment/model/best-model.pt
 batch/model/best-model.pt
 batch/data/test.jsonl
 batch/data/predict.jsonl
+retokenize/data/*.jsonl
+retokenize/data/*.bio
+retokenize/data/*.retokenize
