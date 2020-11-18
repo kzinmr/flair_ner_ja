@@ -127,9 +127,7 @@ def main(cfg: DictConfig):
     )
 
     data_folder = Path(hydra.utils.get_original_cwd()) / "outputs/data"
-    corpus = make_bio_conll_corpus(
-        data_folder, "dev.bio.retokenize", "dev.bio.retokenize", "dev.bio.retokenize"
-    )
+    corpus = make_bio_conll_corpus(data_folder)
 
     tagger = make_tagger(corpus, cfg)
     trainer = ModelTrainer(tagger, corpus)
