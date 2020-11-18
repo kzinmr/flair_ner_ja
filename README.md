@@ -1,8 +1,12 @@
 # flair_ner_ja
 
+## retokenize
+- build: `docker build -t retokenize .`
+- run: `docker run --rm -v /where/to/flair_ner_ja/retokenize/data:/app/data retokenize`
+
 ## train
-- build: `docker build -t flair-ner-ja .`
-- run: `docker run --rm --gpus all -v /where/to/flair_ner_ja/outputs:/app/outputs flair-ner-ja`
+- build: `docker build -t flair-ner-ja-train .`
+- run: `docker run --rm --gpus all -v /where/to/flair_ner_ja/train/outputs:/app/outputs flair-ner-ja-train`
 
 ## predict (deployment)
 - `cd deployment`
