@@ -317,6 +317,9 @@ def main(
     test_file: Optional[Path] = None,
     download_file: bool = False,
 ):
+    train_file = Path(train_file)
+    dev_file = Path(dev_file)
+    test_file = Path(test_file)
     if download_file:
         for mode in ["train", "dev", "test"]:
             filepath = f"/app/data/{mode}.bio"
