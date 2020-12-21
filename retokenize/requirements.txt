@@ -4,3 +4,4 @@ pandas
 regex
 jsonlines
 pytokenizations
+click
