@@ -37,10 +37,8 @@ RUN pip3 install -U pip
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
 
-RUN echo "すもももももももものうち中居正広"|mecab
-
 RUN mkdir ${APP_ROOT}/data
-# COPY data/*.bio data/
+COPY data/*.txt data/*.bio data/*.conll data/
 COPY *.py ./
 
 CMD ["python3", "retokenize.py"]

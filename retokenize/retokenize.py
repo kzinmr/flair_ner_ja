@@ -295,14 +295,17 @@ def make_conll_corpus(jsonl_path: Path, tokenizer=None):
 @click.option(
     "--train_file",
     type=click.Path(exists=True),
+    default="/app/data/train.txt",
 )
 @click.option(
     "--dev_file",
     type=click.Path(exists=True),
+    default="/app/data/dev.txt",
 )
 @click.option(
     "--test_file",
     type=click.Path(exists=True),
+    default="/app/data/test.txt",
 )
 @click.option(
     "--download_file",
