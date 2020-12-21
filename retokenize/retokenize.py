@@ -295,17 +295,17 @@ def make_conll_corpus(jsonl_path: Path, tokenizer=None):
 @click.option(
     "--train_file",
     type=click.Path(exists=True),
-    default="/app/data/train.txt",
+    default="/app/data/train.jsonl",
 )
 @click.option(
     "--dev_file",
     type=click.Path(exists=True),
-    default="/app/data/dev.txt",
+    default="/app/data/dev.jsonl",
 )
 @click.option(
     "--test_file",
     type=click.Path(exists=True),
-    default="/app/data/test.txt",
+    default="/app/data/test.jsonl",
 )
 @click.option(
     "--download_file",
@@ -317,9 +317,6 @@ def main(
     test_file: Optional[Path] = None,
     download_file: bool = False,
 ):
-    train_file = Path(train_file)
-    dev_file = Path(dev_file)
-    test_file = Path(test_file)
     if download_file:
         for mode in ["train", "dev", "test"]:
             filepath = f"/app/data/{mode}.bio"
@@ -327,6 +324,9 @@ def main(
                 retokenize_conll(filepath)
 
     elif train_file is not None and dev_file is not None and test_file is not None:
+        train_file = Path(train_file)
+        dev_file = Path(dev_file)
+        test_file = Path(test_file)
         if (
             train_file.suffix in [".txt", ".bio", ".conll"]
             and dev_file.suffix in [".txt", ".bio", ".conll"]
