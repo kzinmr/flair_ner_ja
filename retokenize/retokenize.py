@@ -1,11 +1,12 @@
 # Convert CoNLL2003-like column data to chunks and spans
+import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional, Tuple
-import json
-import re
+from typing import Iterable, List, Optional, Tuple, Union
+import click
+import jsonlines
 import MeCab
-import pandas as pd
 import requests
 import tokenizations
 
@@ -226,7 +227,7 @@ def retokenize_sentences(sentences: List[Sentence], tokenizer=None) -> str:
     return "\n".join(sentence_columns)
 
 
-def retokenize_conll(filepath: str, tokenizer=None):
+def retokenize_conll(filepath: Union[str, Path], tokenizer=None):
     sentences: List[Sentence] = make_sentences_from_conll(filepath)
     new_conll = retokenize_sentences(sentences, tokenizer)
     filepath_ret = filepath + ".retokenize"
@@ -265,13 +266,82 @@ def download_conll_data(filepath: str = "test.bio"):
         return filepath
 
 
+def make_conll_corpus(jsonl_path: Path, tokenizer=None):
+    """camphr形式からtokenize & conllフォーマットに変換し、Corpus化"""
+
+    def __make_conll(cc, reader):
+        conll = []
+        for text, entd in reader.iter():
+            labels = [label for _, _, label in entd["entities"]]
+            spans = [(s, e) for s, e, _ in entd["entities"]]
+            tokens_labels = cc.tokenize_and_align_spans(text, spans, labels)
+            conll.append(
+                "\n".join([f"{token}\t{label}" for (token, label) in tokens_labels])
+            )
+        return conll
+
+    if tokenizer is None:
+        tokenizer = MecabTokenizer()
+    cc = ConllConverter(tokenizer)
+
+    with jsonlines.open(jsonl_path, "r") as reader:
+        conll = __make_conll(cc, reader)
+        conll_path = f"{jsonl_path}.conll"
+        with open(conll_path, "w") as fp:
+            fp.write("\n\n".join(conll))
+
+
+@click.command()
+@click.option(
+    "--train_file",
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--dev_file",
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--test_file",
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--download_file",
+    is_flag=True,
+)
+def main(
+    train_file: Optional[Path] = None,
+    dev_file: Optional[Path] = None,
+    test_file: Optional[Path] = None,
+    download_file: bool = False,
+):
+    if download_file:
+        for mode in ["train", "dev", "test"]:
+            filepath = f"/app/data/{mode}.bio"
+            if download_conll_data(filepath):
+                retokenize_conll(filepath)
+
+    elif train_file is not None and dev_file is not None and test_file is not None:
+        if (
+            train_file.suffix in [".txt", ".bio", ".conll"]
+            and dev_file.suffix in [".txt", ".bio", ".conll"]
+            and test_file.suffix in [".txt", ".bio", ".conll"]
+        ):
+            retokenize_conll(train_file)
+            retokenize_conll(dev_file)
+            retokenize_conll(test_file)
+        elif (
+            train_file.suffix == ".jsonl"
+            and dev_file.suffix == ".jsonl"
+            and test_file.suffix == ".jsonl"
+        ):
+            make_conll_corpus(train_file)
+            make_conll_corpus(dev_file)
+            make_conll_corpus(test_file)
+        else:
+            print(
+                "invalid suffix exists in [{train_file.suffix} {dev_file.suffix} {test_file.suffix}]"
+            )
+
+
 if __name__ == "__main__":
-    filepath = "/app/data/train.bio"
-    if download_conll_data(filepath):
-        retokenize_conll(filepath)
-    filepath = "/app/data/dev.bio"
-    if download_conll_data(filepath):
-        retokenize_conll(filepath)
-    filepath = "/app/data/test.bio"
-    if download_conll_data(filepath):
-        retokenize_conll(filepath)
+    main()

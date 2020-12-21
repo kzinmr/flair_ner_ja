@@ -6,30 +6,8 @@ from typing import Optional
 
 import os
 from pathlib import Path
-import jsonlines
-import requests
 import hydra
 from omegaconf import DictConfig
-
-
-def download_data(url, filepath):
-    response = requests.get(url)
-    if response.ok:
-        with open(filepath, "w") as fp:
-            fp.write(response.content.decode("utf8"))
-        return filepath
-
-
-def make_sample_conll_corpus(data_folder):
-    """conllフォーマットデータのダウンロード"""
-    url = "https://raw.githubusercontent.com/Hironsan/IOB2Corpus/master/ja.wikipedia.conll"
-    train_file = "ja.wikipedia.conll"
-    filepath = data_folder / train_file
-    if download_data(url, filepath):
-        columns = {0: "text", 1: "ner"}
-        corpus = ColumnCorpus(data_folder, columns, train_file=train_file)
-
-        return corpus
 
 
 def make_bio_conll_corpus(
@@ -52,43 +30,6 @@ def make_bio_conll_corpus(
             test_file=test_file,
         )
         return corpus
-
-
-def make_conll_corpus(data_folder):
-    """camphr形式からtokenize & conllフォーマットに変換し、Corpus化"""
-
-    def __make_conll(cc, reader):
-        conll = []
-        for text, entd in reader.iter():
-            labels = [label for _, _, label in entd["entities"]]
-            spans = [(s, e) for s, e, _ in entd["entities"]]
-            tokens_labels = cc.tokenize_and_align_spans(text, spans, labels)
-            conll.append(
-                "\n".join([f"{token}\t{label}" for (token, label) in tokens_labels])
-            )
-        return conll
-
-    cc = ConllConverter()
-    train_file = "train.jsonl"
-    test_file = "test.jsonl"
-    with jsonlines.open(data_folder / train_file, "r") as reader:
-        conll = __make_conll(cc, reader)
-    train_file = "train.conll"
-    with open(data_folder / train_file, "w") as fp:
-        fp.write("\n\n".join(conll))
-
-    with jsonlines.open(data_folder / test_file, "r") as reader:
-        conll = __make_conll(cc, reader)
-    test_file = "test.conll"
-    with open(data_folder / test_file, "w") as fp:
-        fp.write("\n\n".join(conll))
-
-    columns = {0: "text", 1: "ner"}
-    corpus = ColumnCorpus(
-        data_folder, columns, train_file=train_file, test_file=test_file
-    )
-
-    return corpus
 
 
 def make_tagger(corpus, cfg):
