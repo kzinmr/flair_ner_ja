@@ -1,0 +1,8 @@
+flair==0.7
+requests
+jsonlines==1.2.0
+omegaconf==2.0.5
+transformers==3.5.1
+sentencepiece==0.1.91
+fugashi
+ipadic

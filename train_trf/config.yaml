@@ -1,0 +1,15 @@
+training:
+    learning_rate: 0.1
+    anneal_factor: 0.5
+    mini_batch_size: 16
+    patience: 3
+    initial_extra_patience: 0
+    max_epochs: 10
+    shuffle: True
+    train_with_dev: False
+    batch_growth_annealing: False
+model:
+    hidden_size: 256
+    dropout: 0.0
+    word_dropout: 0.05
+    locked_dropout: 0.5
