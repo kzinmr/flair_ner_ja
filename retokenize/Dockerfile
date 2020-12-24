@@ -41,4 +41,4 @@ RUN mkdir ${APP_ROOT}/data
 COPY data/*.txt data/*.bio data/*.conll data/
 COPY *.py ./
 
-CMD ["python3", "retokenize.py"]
+CMD ["python3", "retokenize.py", "--download_file"]
