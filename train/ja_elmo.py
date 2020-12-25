@@ -10,19 +10,21 @@ from flair.data import Sentence, Token
 from flair.embeddings import TokenEmbeddings
 
 
-
 class ELMoEmbeddings(TokenEmbeddings):
     """Contextual word embeddings using word-level LM, as proposed in Peters et al., 2018.
     ELMo word vectors can be constructed by combining layers in different ways.
     Default is to concatene the top 3 layers in the LM."""
 
     def __init__(
-            self, model: str = "original", options_file: str = None, weight_file: str = None,
-            embedding_mode: str = "all"
+        self,
+        model: str = "original",
+        options_file: str = None,
+        weight_file: str = None,
+        embedding_mode: str = "all",
     ):
         super().__init__()
 
-        self.instance_parameters = super().get_instance_parameters(locals=locals())
+        self.instance_parameters = self.get_instance_parameters(locals=locals())
 
         # try:
         #     import allennlp.commands.elmo
@@ -61,8 +63,12 @@ class ELMoEmbeddings(TokenEmbeddings):
                 options_file = "https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/contributed/pubmed/elmo_2x4096_512_2048cnn_2xhighway_options.json"
                 weight_file = "https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/contributed/pubmed/elmo_2x4096_512_2048cnn_2xhighway_weights_PubMed_only.hdf5"
             if model == "ja":
-                options_file = 'https://exawizardsallenlp.blob.core.windows.net/data/options.json'
-                weight_file = 'https://exawizardsallenlp.blob.core.windows.net/data/weights.hdf5'
+                options_file = (
+                    "https://exawizardsallenlp.blob.core.windows.net/data/options.json"
+                )
+                weight_file = (
+                    "https://exawizardsallenlp.blob.core.windows.net/data/weights.hdf5"
+                )
 
         if embedding_mode == "all":
             self.embedding_mode_fn = self.use_layers_all
@@ -94,11 +100,16 @@ class ELMoEmbeddings(TokenEmbeddings):
     @staticmethod
     def get_instance_parameters(locals: dict) -> dict:
         class_definition = locals.get("__class__")
-        instance_parameters = set(inspect.getfullargspec(class_definition.__init__).args)
+        instance_parameters = set(
+            inspect.getfullargspec(class_definition.__init__).args
+        )
         instance_parameters.difference_update(set(["self"]))
         instance_parameters.update(set(["__class__"]))
-        instance_parameters = {class_attribute: attribute_value for class_attribute, attribute_value in locals.items()
-                               if class_attribute in instance_parameters}
+        instance_parameters = {
+            class_attribute: attribute_value
+            for class_attribute, attribute_value in locals.items()
+            if class_attribute in instance_parameters
+        }
         return instance_parameters
 
     @property
@@ -133,7 +144,7 @@ class ELMoEmbeddings(TokenEmbeddings):
                 elmo_embedding_layers = [
                     torch.FloatTensor(sentence_embeddings[0, token_idx, :]),
                     torch.FloatTensor(sentence_embeddings[1, token_idx, :]),
-                    torch.FloatTensor(sentence_embeddings[2, token_idx, :])
+                    torch.FloatTensor(sentence_embeddings[2, token_idx, :]),
                 ]
                 word_embedding = self.embedding_mode_fn(elmo_embedding_layers)
                 token.set_embedding(self.name, word_embedding)
@@ -160,5 +171,5 @@ class ELMoEmbeddings(TokenEmbeddings):
 
         self.ee.elmo_bilm.to(device=flair.device)
         self.ee.elmo_bilm._elmo_lstm._states = tuple(
-            [state.to(flair.device) for state in self.ee.elmo_bilm._elmo_lstm._states])
-
+            [state.to(flair.device) for state in self.ee.elmo_bilm._elmo_lstm._states]
+        )
