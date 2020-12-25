@@ -1,13 +1,15 @@
 import os
+import re
 from pathlib import Path
 from typing import Optional
 
 import hydra
 from flair.datasets import ColumnCorpus
-from flair.embeddings import FlairEmbeddings, StackedEmbeddings
 from flair.models import SequenceTagger
 from flair.trainers import ModelTrainer
 from omegaconf import DictConfig
+
+from ja_elmo import ELMoEmbeddings
 
 
 def make_bio_conll_corpus(
@@ -40,11 +42,12 @@ def make_tagger(corpus, cfg):
     # Contextual string embeddings of words, as proposed in Akbik et al., 2018.
     # using a character-level language model
     # Trained with 439M words of Japanese Web crawls
-    embedding_types = [
-        FlairEmbeddings("ja-forward"),
-        FlairEmbeddings("ja-backward"),
-    ]
-    embeddings = StackedEmbeddings(embeddings=embedding_types)
+    # embedding_types = [
+    #     FlairEmbeddings("ja-forward"),  # WordEmbeddings('ja-crawl'), WordEmbeddings('ja')
+    #     FlairEmbeddings("ja-backward"),
+    # ]
+    # embeddings = StackedEmbeddings(embeddings=embedding_types)
+    embeddings = ELMoEmbeddings('ja')
 
     tagger = SequenceTagger(
         hidden_size=cfg.model.hidden_size,
