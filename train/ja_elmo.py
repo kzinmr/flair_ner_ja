@@ -1,3 +1,4 @@
+import inspect
 import re
 from typing import List, Optional
 
@@ -6,7 +7,9 @@ import flair
 import torch
 from flair import device
 from flair.data import Sentence, Token
-from flair.embeddings import FlairEmbeddings, StackedEmbeddings, TokenEmbeddings
+from flair.embeddings import TokenEmbeddings
+
+
 
 class ELMoEmbeddings(TokenEmbeddings):
     """Contextual word embeddings using word-level LM, as proposed in Peters et al., 2018.
@@ -19,7 +22,7 @@ class ELMoEmbeddings(TokenEmbeddings):
     ):
         super().__init__()
 
-        self.instance_parameters = self.get_instance_parameters(locals=locals())
+        self.instance_parameters = super().get_instance_parameters(locals=locals())
 
         # try:
         #     import allennlp.commands.elmo
@@ -87,6 +90,16 @@ class ELMoEmbeddings(TokenEmbeddings):
         self.__embedding_length: int = len(
             embedded_dummy[0].get_token(1).get_embedding()
         )
+
+    @staticmethod
+    def get_instance_parameters(locals: dict) -> dict:
+        class_definition = locals.get("__class__")
+        instance_parameters = set(inspect.getfullargspec(class_definition.__init__).args)
+        instance_parameters.difference_update(set(["self"]))
+        instance_parameters.update(set(["__class__"]))
+        instance_parameters = {class_attribute: attribute_value for class_attribute, attribute_value in locals.items()
+                               if class_attribute in instance_parameters}
+        return instance_parameters
 
     @property
     def embedding_length(self) -> int:
