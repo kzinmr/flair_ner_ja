@@ -1,12 +1,12 @@
-from flair.datasets import ColumnCorpus
-from flair.embeddings import StackedEmbeddings, FlairEmbeddings
-from flair.models import SequenceTagger
-from flair.trainers import ModelTrainer
-from typing import Optional
-
 import os
 from pathlib import Path
+from typing import Optional
+
 import hydra
+from flair.datasets import ColumnCorpus
+from flair.embeddings import FlairEmbeddings, StackedEmbeddings
+from flair.models import SequenceTagger
+from flair.trainers import ModelTrainer
 from omegaconf import DictConfig
 
 

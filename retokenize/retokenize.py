@@ -1,9 +1,10 @@
 # Convert CoNLL2003-like column data to chunks and spans
+# Convert CoNLL2003-like column data to chunks and spans
 import json
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Optional, Tuple, Union
+
 import click
 import jsonlines
 import MeCab

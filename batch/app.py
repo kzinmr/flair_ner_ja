@@ -1,12 +1,14 @@
-import pickle
 import json
+import pickle
+from itertools import accumulate
+from typing import Dict, List, Optional, Tuple
+
 import jsonlines
-from flair.models import SequenceTagger
-from flair.data import Sentence, Span  # , build_japanese_tokenizer
 import MeCab
 import textspan
-from itertools import accumulate
-from typing import List, Tuple, Dict, Optional
+from flair.data import Sentence  # , build_japanese_tokenizer
+from flair.data import Span
+from flair.models import SequenceTagger
 
 # import torch
 

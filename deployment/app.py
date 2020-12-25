@@ -1,11 +1,11 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
 import json
-from flair.models import SequenceTagger
-from flair.data import Sentence  # , build_japanese_tokenizer
 
 import MeCab
 import textspan
+from fastapi import FastAPI
+from flair.data import Sentence  # , build_japanese_tokenizer
+from flair.models import SequenceTagger
+from pydantic import BaseModel
 
 # import sys
 # sys.setrecursionlimit(100)

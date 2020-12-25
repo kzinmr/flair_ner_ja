@@ -1,12 +1,12 @@
+import os
+from pathlib import Path
+from typing import Optional
+
+import hydra
 from flair.datasets import ColumnCorpus
 from flair.embeddings import TransformerWordEmbeddings
 from flair.models import SequenceTagger
 from flair.trainers import ModelTrainer
-from typing import Optional
-
-import os
-from pathlib import Path
-import hydra
 from omegaconf import DictConfig
 
 
@@ -21,7 +21,7 @@ def make_bio_conll_corpus(
     dev_path = data_folder / dev_file
     test_path = data_folder / test_file
     if train_path.exists() and dev_path.exists() and test_path.exists():
-        print('make corpus')
+        print("make corpus")
         columns = {0: "text", 1: "ner"}
         corpus = ColumnCorpus(
             data_folder,
@@ -96,4 +96,3 @@ def main(cfg: DictConfig):
 
 if __name__ == "__main__":
     main()
-
