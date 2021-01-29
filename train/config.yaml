@@ -4,7 +4,7 @@ training:
     mini_batch_size: 16
     patience: 3
     initial_extra_patience: 0
-    max_epochs: 150
+    max_epochs: 100
     shuffle: True
     train_with_dev: False
     batch_growth_annealing: False
