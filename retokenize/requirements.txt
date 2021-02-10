@@ -1,5 +1,5 @@
-mecab-python3
-ipadic
+mecab-python3==0.7
+# ipadic
 pandas
 regex
 jsonlines

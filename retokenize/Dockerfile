@@ -24,7 +24,7 @@ RUN apt-get update \
     software-properties-common \
     mecab \
     libmecab-dev \
-    #   mecab-ipadic-utf8 \
+    mecab-ipadic-utf8 \
     python3.8 \
     python3.8-dev \
     python3-pip \
