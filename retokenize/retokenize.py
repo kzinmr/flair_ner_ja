@@ -169,11 +169,14 @@ class ConllConverter:
         tokens = self.tokenize(text)
 
         # 各tokenがtextのどこにあるか(token_spans)を計算
-        token_spans = textspan.get_original_spans(tokens, text)
+        tokens_spans = textspan.get_original_spans(tokens, text)
+
         # assertion
-        spannedtokens = [text[span[0] : span[1]] for span in token_spans]
+        spannedtokens = [text[st:ed] for char_spans in tokens_spans for st, ed in char_spans]
+        # spannedtokens = [text[span[0] : span[1]] for span in token_spans]
         assert spannedtokens == tokens
 
+        token_spans = [(char_spans[0][0], char_spans[-1][1]) for char_spans in tokens_spans if char_spans]
         # 各tokenに対応するchunk NE-typeを同定(token-span vs chunk-span の包含関係計算)
         token_labels = self.get_token_labels(token_spans, chunk_spans, chunk_labels)
 
