@@ -3,5 +3,5 @@ mecab-python3==0.7
 pandas
 regex
 jsonlines
-pytokenizations
+pytextspan
 click

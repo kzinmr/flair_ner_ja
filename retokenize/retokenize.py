@@ -9,7 +9,7 @@ import click
 import jsonlines
 import MeCab
 import requests
-import tokenizations
+import textspan
 
 
 @dataclass(frozen=True)
@@ -169,7 +169,7 @@ class ConllConverter:
         tokens = self.tokenize(text)
 
         # 各tokenがtextのどこにあるか(token_spans)を計算
-        token_spans = tokenizations.get_original_spans(tokens, text)
+        token_spans = textspan.get_original_spans(tokens, text)
         # assertion
         spannedtokens = [text[span[0] : span[1]] for span in token_spans]
         assert spannedtokens == tokens
