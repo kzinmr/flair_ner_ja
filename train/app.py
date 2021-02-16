@@ -9,7 +9,7 @@ from flair.models import SequenceTagger
 from flair.trainers import ModelTrainer
 from omegaconf import DictConfig
 from flair.embeddings import FlairEmbeddings, StackedEmbeddings
-from ja_elmo import ELMoEmbeddings
+# from ja_elmo import ELMoEmbeddings
 
 
 def make_bio_conll_corpus(
@@ -87,6 +87,8 @@ def main(cfg: DictConfig):
         shuffle=cfg.training.shuffle,
         train_with_dev=cfg.training.train_with_dev,
         batch_growth_annealing=cfg.training.batch_growth_annealing,
+        monitor_train=cfg.training.debug,
+        monitor_test=cfg.training.debug,
     )
 
     # tagger = SequenceTagger.load(model_dir / "best-model.pt")
