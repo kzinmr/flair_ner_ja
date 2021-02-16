@@ -2173,7 +2173,7 @@ class SequenceTagger(FlairModel):
 
             # progress bar for verbosity
             if verbose:
-                dataloader = tqdm(dataloader)
+                dataloader = Tqdm.tqdm(dataloader)
 
             overall_loss = 0
             batch_no = 0
