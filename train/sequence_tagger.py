@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from operator import itemgetter
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import konoha
@@ -2246,6 +2246,7 @@ class SequenceTagger(FlairModel):
                 mini_batch_size=mini_batch_size,
                 label_name="predicted",
                 return_loss=True,
+                verbose=True  # NOTE: edited
             )
             eval_loss += loss
             batch_no += 1
@@ -2369,7 +2370,7 @@ class SequenceTagger(FlairModel):
 
         lines: List[str] = []
 
-        for batch in tqdm(data_loader):  # NOTE: edited
+        for batch in data_loader:
 
             # predict for batch
             loss = self.predict(
@@ -2378,6 +2379,7 @@ class SequenceTagger(FlairModel):
                 mini_batch_size=mini_batch_size,
                 label_name="predicted",
                 return_loss=True,
+                verbose=True  # NOTE: edited
             )
             eval_loss += loss
             batch_no += 1
