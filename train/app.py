@@ -89,6 +89,7 @@ def main(cfg: DictConfig):
         batch_growth_annealing=cfg.training.batch_growth_annealing,
         monitor_train=cfg.training.debug,
         monitor_test=cfg.training.debug,
+        num_workers=cfg.training.workers,
     )
 
     # tagger = SequenceTagger.load(model_dir / "best-model.pt")

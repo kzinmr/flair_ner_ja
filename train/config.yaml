@@ -8,7 +8,8 @@ training:
     shuffle: True
     train_with_dev: False
     batch_growth_annealing: False
-    debug: True    
+    debug: True
+    workers: 4
 model:
     hidden_size: 256
     dropout: 0.0
