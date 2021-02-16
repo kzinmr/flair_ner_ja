@@ -10,6 +10,7 @@ training:
     batch_growth_annealing: False
     debug: True
     workers: 4
+    embeddings_storage_mode: 'none'
 model:
     hidden_size: 256
     dropout: 0.0

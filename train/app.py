@@ -8,7 +8,7 @@ from flair.datasets import ColumnCorpus
 
 from flair.trainers import ModelTrainer
 from omegaconf import DictConfig
-from flair.embeddings import FlairEmbeddings, StackedEmbeddings
+from flair.embeddings import FlairEmbeddings, StackedEmbeddings, WordEmbeddings
 # from flair.models import SequenceTagger
 from sequence_tagger import SequenceTagger
 # from ja_elmo import ELMoEmbeddings
@@ -45,8 +45,9 @@ def make_tagger(corpus, cfg):
     # using a character-level language model
     # Trained with 439M words of Japanese Web crawls
     embedding_types = [
-        FlairEmbeddings("ja-forward"),  # WordEmbeddings('ja-crawl'), WordEmbeddings('ja')
-        FlairEmbeddings("ja-backward"),
+        WordEmbeddings('ja') # 695MB
+        # WordEmbeddings('ja-crawl'), # 1.2GB
+        #FlairEmbeddings("ja-forward"), FlairEmbeddings("ja-backward"),  # 335MB * 2
     ]
     embeddings = StackedEmbeddings(embeddings=embedding_types)
     # embeddings = ELMoEmbeddings('ja')
@@ -92,6 +93,7 @@ def main(cfg: DictConfig):
         monitor_train=cfg.training.debug,
         monitor_test=cfg.training.debug,
         num_workers=cfg.training.workers,
+        embeddings_storage_mode=cfg.training.embeddings_storage_mode,
     )
 
     # tagger = SequenceTagger.load(model_dir / "best-model.pt")
