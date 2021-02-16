@@ -1,5 +1,4 @@
 import os
-import re
 from pathlib import Path
 from typing import Optional
 
@@ -9,8 +8,7 @@ from flair.datasets import ColumnCorpus
 from flair.trainers import ModelTrainer
 from omegaconf import DictConfig
 from flair.embeddings import FlairEmbeddings, StackedEmbeddings, WordEmbeddings
-# from flair.models import SequenceTagger
-from sequence_tagger import SequenceTagger
+from flair.models import SequenceTagger
 # from ja_elmo import ELMoEmbeddings
 
 
