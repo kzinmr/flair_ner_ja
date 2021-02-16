@@ -24,6 +24,7 @@ RUN pip install --upgrade pip && \
 
 COPY config.yaml .
 COPY app.py .
+COPY sequence_tagger.py .
 RUN mkdir -p outputs/data
 RUN mkdir -p outputs/models
 

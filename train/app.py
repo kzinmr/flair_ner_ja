@@ -5,10 +5,12 @@ from typing import Optional
 
 import hydra
 from flair.datasets import ColumnCorpus
-from flair.models import SequenceTagger
+
 from flair.trainers import ModelTrainer
 from omegaconf import DictConfig
 from flair.embeddings import FlairEmbeddings, StackedEmbeddings
+# from flair.models import SequenceTagger
+from sequence_tagger import SequenceTagger
 # from ja_elmo import ELMoEmbeddings
 
 
