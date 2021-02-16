@@ -45,9 +45,9 @@ def make_tagger(corpus, cfg):
     # using a character-level language model
     # Trained with 439M words of Japanese Web crawls
     embedding_types = [
-        WordEmbeddings('ja') # 695MB
+        # WordEmbeddings('ja'), # 695MB
         # WordEmbeddings('ja-crawl'), # 1.2GB
-        #FlairEmbeddings("ja-forward"), FlairEmbeddings("ja-backward"),  # 335MB * 2
+        FlairEmbeddings("ja-forward"), FlairEmbeddings("ja-backward"),  # 335MB * 2
     ]
     embeddings = StackedEmbeddings(embeddings=embedding_types)
     # embeddings = ELMoEmbeddings('ja')
