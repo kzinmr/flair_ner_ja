@@ -26,5 +26,5 @@ COPY config.yaml .
 COPY app.py .
 RUN mkdir -p outputs/data
 RUN mkdir -p outputs/models
-RUN mecab -D
+
 CMD ["python", "app.py"]
