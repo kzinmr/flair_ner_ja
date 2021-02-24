@@ -21,7 +21,6 @@ def make_bio_conll_corpus(
     dev_path = data_folder / dev_file
     test_path = data_folder / test_file
     if train_path.exists() and dev_path.exists() and test_path.exists():
-        print("make corpus")
         columns = {0: "text", 1: "ner"}
         corpus = ColumnCorpus(
             data_folder,
@@ -55,6 +54,7 @@ def make_tagger(corpus, cfg):
         tag_dictionary=tag_dictionary,
         tag_type=tag_type,
         use_crf=True,
+        beta=1.0,
     )
     return tagger
 
@@ -84,6 +84,10 @@ def main(cfg: DictConfig):
         shuffle=cfg.training.shuffle,
         train_with_dev=cfg.training.train_with_dev,
         batch_growth_annealing=cfg.training.batch_growth_annealing,
+        monitor_train=cfg.training.debug,
+        monitor_test=cfg.training.debug,
+        num_workers=cfg.training.workers,
+        embeddings_storage_mode=cfg.training.embeddings_storage_mode,
     )
 
     # tagger = SequenceTagger.load(model_dir / "best-model.pt")
